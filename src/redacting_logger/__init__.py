@@ -1,21 +1,27 @@
-"""JSON log formatter and filter for stdlib logging that redacts secrets and personal data by key name and by bounded value patterns"""
+"""JSON log formatter and filter for stdlib logging that redact secrets and personal data."""
 
 from __future__ import annotations
 
-__all__ = ["__version__", "normalize"]
+import logging
+
+from .errors import RedactionError
+from .logging_ext import JsonFormatter, RedactingFilter, make_handler
+from .patterns import DEFAULT_KEYS, DEFAULT_PATTERNS
+from .redact import redact
+from .rules import RedactionRules
+
+__all__ = [
+    "DEFAULT_KEYS",
+    "DEFAULT_PATTERNS",
+    "JsonFormatter",
+    "RedactingFilter",
+    "RedactionError",
+    "RedactionRules",
+    "__version__",
+    "make_handler",
+    "redact",
+]
 
 __version__ = "0.1.0"
 
-
-def normalize(value: str) -> str:
-    """Return ``value`` trimmed and lower-cased.
-
-    Placeholder API created by the template: replace it with the utility's real behavior.
-
-    Raises:
-        ValueError: if ``value`` is empty or only whitespace.
-    """
-    cleaned = value.strip()
-    if not cleaned:
-        raise ValueError("value must not be empty")
-    return cleaned.lower()
+logging.getLogger(__name__).addHandler(logging.NullHandler())

@@ -2,14 +2,24 @@
 
 ## Threat model
 
-`trysac-redacting-logger` is a pure library without I/O. The main risks are:
+`trysac-redacting-logger` is a pure library without I/O.
 
-- **Supply chain**: a compromised dependency or CI action. Mitigation: no runtime dependencies,
-  Dependabot weekly updates, actions pinned to major versions, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and fail with
-  explicit exceptions; never `eval`, `exec` or deserialize untrusted data.
+### Defended
+
+Tests are in `tests/test_redacting_logger.py`.
+
+- Sensitive keys (DEFAULT_KEYS, with key normalisation): `test_key_normalisation`.
+- The 8 patterns (bearer, aws_key, jwt, private_key, github_token, url_credentials, email, card)
+  in messages, args, extras, dict keys and tracebacks:
+  `test_every_pattern_is_redacted_on_every_surface`.
+- Hostile input (huge strings, cycles, depth, JWT-prefix floods): formatting never raises and
+  stays fast; see `test_hostile_jwt_prefixes_are_fast`.
+
+### Not defended (best effort)
+
+- Secrets with no recognisable key or shape.
+- Handlers added elsewhere that bypass this formatter or filter.
+- Personal names and addresses.
 
 ## Publishing
 
