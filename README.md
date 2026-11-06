@@ -8,8 +8,9 @@ JSON log formatter and filter for stdlib logging that redacts secrets and person
 
 ## Problem
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+Logs are shipped to third-party platforms and routinely leak API keys, bearer tokens and emails
+passed in messages, arguments, exception text or extra fields. Remembering to mask every call site
+does not work. This library redacts by key name and by value pattern before anything is written.
 
 ## Install
 
@@ -19,21 +20,26 @@ pip install trysac-redacting-logger
 uv add trysac-redacting-logger
 ```
 
-Requires Python 3.10 or newer. No runtime dependencies.
+Requires Python 3.10 or newer. No runtime dependencies. The install name is
+`trysac-redacting-logger`; the import name is `redacting_logger`.
 
 ## Usage
 
 ```python
-import redacting_logger
+import logging
+import sys
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(redacting_logger.normalize("  Hello World "))  # -> "hello world"
+from redacting_logger import RedactionRules, make_handler, redact
 
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    redacting_logger.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+log = logging.getLogger("app")
+log.addHandler(make_handler(sys.stdout))
+log.setLevel(logging.INFO)
+log.info("auth %s", "Bearer abcdef123456")  # message: "auth [REDACTED:bearer]"
+
+rules = RedactionRules()
+rules.add_pattern("order", r"ORD-[0-9]{8}")  # raises RedactionError if invalid
+print(redact({"password": "p", "note": "ORD-12345678"}, rules))
+# {'password': '[REDACTED]', 'note': '[REDACTED:order]'}
 ```
 
 ## Documentation

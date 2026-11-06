@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Add `RedactionRules`, `redact`, `RedactingFilter`, `JsonFormatter` and `make_handler`: strict JSON logging for the standard library that redacts secrets and personal data by key name and by bounded value patterns.
 - Initial project structure from the factory utility template.
